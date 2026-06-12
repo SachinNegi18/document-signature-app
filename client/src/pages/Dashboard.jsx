@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -51,9 +52,14 @@ const Dashboard = () => {
                                             Status: <span className="capitalize">{doc.status}</span>
                                         </p>
                                     </div>
-                                    <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                        View
-                                    </a>
+                                    <div className="flex gap-3">
+                                        <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                            View
+                                        </a>
+                                        <Link to={`/sign/${doc._id}`} className="text-green-600 hover:underline">
+                                            Sign
+                                        </Link>
+                                    </div>
                                 </div>
                             ))}
                         </div>
