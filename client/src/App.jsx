@@ -1,9 +1,37 @@
-function App() {
-  return (
-    <h1 className="text-3xl font-bold text-blue-600">
-      Doc Signature App
-    </h1>
-  )
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+
+const ProtectedRoute = ({ children }) => {
+    const { token } = useAuth();
+    return token ? children : <Navigate to="/" />;
+};
+
+function AppRoutes() {
+    return (
+        <Routes>
+            <Route path="/" element={<Login />} />
+            <Route
+                path="/dashboard"
+                element={
+                    <ProtectedRoute>
+                        <Dashboard />
+                    </ProtectedRoute>
+                }
+            />
+        </Routes>
+    );
 }
 
-export default App
+function App() {
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <AppRoutes />
+            </BrowserRouter>
+        </AuthProvider>
+    );
+}
+
+export default App;
