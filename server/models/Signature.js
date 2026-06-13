@@ -24,6 +24,10 @@ const signatureSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
+    signatureImage: {
+        type: String, // base64 data URL
+        default: null
+    },
     status: {
         type: String,
         enum: ['pending', 'signed', 'rejected'],

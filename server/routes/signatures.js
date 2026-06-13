@@ -11,14 +11,15 @@ const logAction = require('../middleware/logAction');
 // SAVE SIGNATURE POSITION
 router.post('/', auth, async (req, res) => {
     try {
-        const { documentId, x, y, page } = req.body;
+        const { documentId, x, y, page, signatureImage } = req.body;
 
         const signature = await Signature.create({
             documentId,
             userId: req.user.userId,
             x,
             y,
-            page: page || 1
+            page: page || 1,
+            signatureImage: signatureImage || null
         });
 
         res.status(201).json({ message: 'Signature position saved', signature });
@@ -63,12 +64,25 @@ router.post('/finalize', auth, async (req, res) => {
         const pages = pdfDoc.getPages();
         const page = pages[signature.page - 1];
 
-        // Embed signature text at the saved position
-        page.drawText('Signed by ' + req.user.userId, {
-            x: signature.x,
-            y: page.getHeight() - signature.y,
-            size: 14,
-        });
+        // Embed signature image (or fallback to text) at the saved position
+        if (signature.signatureImage) {
+            const pngImageBytes = signature.signatureImage.split(',')[1];
+            const pngImage = await pdfDoc.embedPng(Buffer.from(pngImageBytes, 'base64'));
+            const pngDims = pngImage.scale(0.5);
+
+            page.drawImage(pngImage, {
+                x: signature.x,
+                y: page.getHeight() - signature.y - pngDims.height,
+                width: pngDims.width,
+                height: pngDims.height,
+            });
+        } else {
+            page.drawText('Signed by ' + req.user.userId, {
+                x: signature.x,
+                y: page.getHeight() - signature.y,
+                size: 14,
+            });
+        }
 
         // Save the signed PDF
         const signedPdfBytes = await pdfDoc.save();
