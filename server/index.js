@@ -21,6 +21,14 @@ app.use('/api/signatures', signatureRoutes);
 
 app.get('/', (req, res) => res.send('Server is running'));
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    if (err) {
+        return res.status(400).json({ message: err.message });
+    }
+    next();
+});
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');
