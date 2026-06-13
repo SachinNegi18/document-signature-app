@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
     const [documents, setDocuments] = useState([]);
+    const [filter, setFilter] = useState('all');
     const { token, user, logout } = useAuth();
 
     useEffect(() => {
@@ -50,19 +51,40 @@ const Dashboard = () => {
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold mb-4">Your Documents</h2>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+                        <h2 className="text-xl font-semibold">Your Documents</h2>
+                        <div className="flex gap-2 flex-wrap">
+                            {['all', 'pending', 'signed', 'rejected'].map((status) => (
+                                <button
+                                    key={status}
+                                    onClick={() => setFilter(status)}
+                                    className={`px-3 py-1 rounded text-sm capitalize transition ${
+                                        filter === status
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    {status}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                    {documents.length === 0 ? (
-                        <p className="text-gray-500">No documents uploaded yet.</p>
+                    {documents.filter((doc) => filter === 'all' || doc.status === filter).length === 0 ? (
+                        <p className="text-gray-500">No documents found.</p>
                     ) : (
                         <div className="space-y-3">
-                            {documents.map((doc) => (
-                                <div key={doc._id} className="flex justify-between items-center border border-gray-200 rounded p-4">
+                            {documents.filter((doc) => filter === 'all' || doc.status === filter).map((doc) => (
+                                <div key={doc._id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center border border-gray-200 rounded p-4 gap-3">
                                     <div>
                                         <p className="font-medium">{doc.originalName}</p>
-                                        <p className="text-sm text-gray-500">
-                                            Status: <span className="capitalize">{doc.status}</span>
-                                        </p>
+                                        <span className={`inline-block mt-1 px-2 py-1 rounded text-xs font-semibold capitalize ${
+                                            doc.status === 'signed' ? 'bg-green-100 text-green-700' :
+                                            doc.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                            'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                            {doc.status}
+                                        </span>
                                     </div>
                                     <div className="flex gap-3">
                                         <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
