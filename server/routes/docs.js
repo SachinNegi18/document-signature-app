@@ -78,6 +78,38 @@ router.get('/public/:token', async (req, res) => {
     }
 });
 
+// ACCEPT OR REJECT DOCUMENT (via share token, no auth needed)
+router.post('/public/:token/respond', async (req, res) => {
+    try {
+        const { action, reason } = req.body; // action: 'accept' or 'reject'
+
+        const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
+        const document = await Document.findById(decoded.documentId);
+
+        if (!document || document.shareToken !== req.params.token) {
+            return res.status(404).json({ message: 'Invalid or expired link' });
+        }
+
+        if (action === 'accept') {
+            document.status = 'signed';
+            await logAction(req, document._id, 'Document accepted via share link');
+        } else if (action === 'reject') {
+            document.status = 'rejected';
+            document.rejectionReason = reason || 'No reason provided';
+            await logAction(req, document._id, 'Document rejected: ' + document.rejectionReason);
+        } else {
+            return res.status(400).json({ message: 'Invalid action' });
+        }
+
+        await document.save();
+
+        res.json({ message: `Document ${action}ed successfully`, document });
+
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid or expired link' });
+    }
+});
+
 // GET SINGLE DOCUMENT
 router.get('/:id', auth, async (req, res) => {
     try {

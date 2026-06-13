@@ -30,6 +30,10 @@ const documentSchema = new mongoose.Schema({
     shareToken: {
         type: String,
         default: null
+    },
+    rejectionReason: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 
