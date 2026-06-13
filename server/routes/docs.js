@@ -5,6 +5,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const Document = require('../models/Document');
 const auth = require('../middleware/auth');
+const logAction = require('../middleware/logAction');
 
 // Setup Multer Storage
 const storage = multer.diskStorage({
@@ -39,6 +40,8 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
             size: req.file.size
         });
 
+        await logAction(req, document._id, 'Document uploaded', req.user.userId);
+
         res.status(201).json({ message: 'File uploaded successfully', document });
 
     } catch (error) {
@@ -65,6 +68,8 @@ router.get('/public/:token', async (req, res) => {
         if (!document || document.shareToken !== req.params.token) {
             return res.status(404).json({ message: 'Invalid or expired link' });
         }
+
+        await logAction(req, document._id, 'Document viewed via share link');
 
         res.json(document);
 

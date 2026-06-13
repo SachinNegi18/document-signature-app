@@ -6,6 +6,7 @@ const { PDFDocument } = require('pdf-lib');
 const Signature = require('../models/Signature');
 const Document = require('../models/Document');
 const auth = require('../middleware/auth');
+const logAction = require('../middleware/logAction');
 
 // SAVE SIGNATURE POSITION
 router.post('/', auth, async (req, res) => {
@@ -82,6 +83,8 @@ router.post('/finalize', auth, async (req, res) => {
         // Update signature status
         signature.status = 'signed';
         await signature.save();
+
+        await logAction(req, document._id, 'Document signed', req.user.userId);
 
         res.json({
             message: 'PDF signed successfully',

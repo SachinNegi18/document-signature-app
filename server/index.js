@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const docRoutes = require('./routes/docs');
 const signatureRoutes = require('./routes/signatures');
+const auditRoutes = require('./routes/audit');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/docs', docRoutes);
 app.use('/api/signatures', signatureRoutes);
+app.use('/api/audit', auditRoutes);
 
 app.get('/', (req, res) => res.send('Server is running'));
 
