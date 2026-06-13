@@ -26,6 +26,10 @@ const documentSchema = new mongoose.Schema({
         type: String,
         enum: ['pending', 'signed', 'rejected'],
         default: 'pending'
+    },
+    shareToken: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 

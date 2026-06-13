@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const Document = require('../models/Document');
 const auth = require('../middleware/auth');
 
@@ -55,6 +56,23 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+// ACCESS DOCUMENT VIA SHARE TOKEN (NO AUTH NEEDED)
+router.get('/public/:token', async (req, res) => {
+    try {
+        const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
+        const document = await Document.findById(decoded.documentId);
+
+        if (!document || document.shareToken !== req.params.token) {
+            return res.status(404).json({ message: 'Invalid or expired link' });
+        }
+
+        res.json(document);
+
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid or expired link' });
+    }
+});
+
 // GET SINGLE DOCUMENT
 router.get('/:id', auth, async (req, res) => {
     try {
@@ -65,6 +83,33 @@ router.get('/:id', auth, async (req, res) => {
         res.json(document);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
+    }
+});
+
+// GENERATE SHARE LINK
+router.post('/:id/share', auth, async (req, res) => {
+    try {
+        const document = await Document.findById(req.params.id);
+        if (!document) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+
+        const shareToken = jwt.sign(
+            { documentId: document._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
+
+        document.shareToken = shareToken;
+        await document.save();
+
+        res.json({
+            message: 'Share link generated',
+            shareLink: `http://localhost:5173/public-sign/${shareToken}`
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 

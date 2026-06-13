@@ -22,6 +22,18 @@ const Dashboard = () => {
         }
     };
 
+    const shareDocument = async (docId) => {
+        try {
+            const res = await axios.post(`http://localhost:5000/api/docs/${docId}/share`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            navigator.clipboard.writeText(res.data.shareLink);
+            alert('Share link copied to clipboard!\n' + res.data.shareLink);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             <div className="max-w-4xl mx-auto">
@@ -59,6 +71,9 @@ const Dashboard = () => {
                                         <Link to={`/sign/${doc._id}`} className="text-green-600 hover:underline">
                                             Sign
                                         </Link>
+                                        <button onClick={() => shareDocument(doc._id)} className="text-purple-600 hover:underline">
+                                            Share
+                                        </button>
                                     </div>
                                 </div>
                             ))}
