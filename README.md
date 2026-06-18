@@ -44,3 +44,6 @@ npm run dev
 
 Create a `.env` file in `server/` with `MONGO_URI` and `JWT_SECRET`, and a `.env` file in `client/` with `VITE_API_URL=http://localhost:5000`.
 
+<img width="1902" height="715" alt="Screenshot 2026-06-18 172049" src="https://github.com/user-attachments/assets/b6998433-f013-49dc-a0d4-ca5f65428cd1" />
+<img width="1912" height="892" alt="Screenshot 2026-06-18 171910" src="https://github.com/user-attachments/assets/c8f7f84a-a9ef-4747-8fbb-66fd7483c869" />
+<img width="1912" height="903" alt="Screenshot 2026-06-18 171815" src="https://github.com/user-attachments/assets/f77be4fe-b63d-49a3-b4fb-f90324127ed8" />
