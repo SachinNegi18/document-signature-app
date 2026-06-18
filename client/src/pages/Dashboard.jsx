@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,9 @@ import { useAuth } from '../context/AuthContext';
 const Dashboard = () => {
     const [documents, setDocuments] = useState([]);
     const [filter, setFilter] = useState('all');
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const fileInputRef = useRef(null);
     const { token, user, logout } = useAuth();
 
     useEffect(() => {
@@ -14,7 +17,7 @@ const Dashboard = () => {
 
     const fetchDocuments = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/docs`,  {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/docs`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDocuments(res.data);
@@ -25,13 +28,44 @@ const Dashboard = () => {
 
     const shareDocument = async (docId) => {
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/docs/${docId}/share`, {},  {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/docs/${docId}/share`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             navigator.clipboard.writeText(res.data.shareLink);
             alert('Share link copied to clipboard!\n' + res.data.shareLink);
         } catch (error) {
             console.log(error);
+        }
+    };
+
+    const handleFileSelect = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            setUploadError('Only PDF files are allowed');
+            return;
+        }
+
+        setUploading(true);
+        setUploadError('');
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/docs/upload`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            fetchDocuments();
+        } catch (error) {
+            setUploadError(error.response?.data?.message || 'Upload failed');
+        } finally {
+            setUploading(false);
+            e.target.value = '';
         }
     };
 
@@ -61,8 +95,35 @@ const Dashboard = () => {
             </div>
 
             <div className="max-w-5xl mx-auto px-8 py-8">
-                <h1 className="text-xl font-semibold text-gray-900 mb-1">Documents</h1>
-                <p className="text-sm text-gray-500 mb-6">Manage and track your document signing activity</p>
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h1 className="text-xl font-semibold text-gray-900 mb-1">Documents</h1>
+                        <p className="text-sm text-gray-500">Manage and track your document signing activity</p>
+                    </div>
+
+                    <div>
+                        <input
+                            type="file"
+                            accept="application/pdf"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => fileInputRef.current.click()}
+                            disabled={uploading}
+                            className="bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded hover:bg-blue-800 transition disabled:opacity-50"
+                        >
+                            {uploading ? 'Uploading...' : '+ Upload Document'}
+                        </button>
+                    </div>
+                </div>
+
+                {uploadError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-3 py-2 mb-4">
+                        {uploadError}
+                    </div>
+                )}
 
                 {/* Filter tabs */}
                 <div className="flex gap-6 border-b border-gray-200 mb-4">
