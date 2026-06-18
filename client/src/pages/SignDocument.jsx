@@ -55,11 +55,11 @@ const SignDocument = () => {
     useEffect(() => {
         const fetchDoc = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/docs/${id}`, {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/docs/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const path = res.data.filePath.replace(/\\/g, '/');
-                setFileUrl(`http://localhost:5000/${path}`);
+                setFileUrl(`${import.meta.env.VITE_API_URL}/${path}`);
             } catch (error) {
                 console.log(error);
             }
@@ -99,7 +99,7 @@ const SignDocument = () => {
             return;
         }
         try {
-            await axios.post('http://localhost:5000/api/signatures', {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/signatures`, {
                 documentId: id,
                 x: position.x,
                 y: position.y,
@@ -117,13 +117,13 @@ const SignDocument = () => {
 
     const finalizeSignature = async () => {
         try {
-            const res = await axios.post('http://localhost:5000/api/signatures/finalize', {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/signatures/finalize`, {
                 documentId: id
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setFinalized(true);
-            setSignedFileUrl(`http://localhost:5000/${res.data.signedFilePath}`);
+            setSignedFileUrl(`${import.meta.env.VITE_API_URL}/${res.data.signedFilePath}`);
         } catch (error) {
             console.log(error);
         }

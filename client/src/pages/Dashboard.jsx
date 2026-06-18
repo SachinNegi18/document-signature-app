@@ -14,7 +14,7 @@ const Dashboard = () => {
 
     const fetchDocuments = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/docs', {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/docs`,  {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDocuments(res.data);
@@ -25,7 +25,7 @@ const Dashboard = () => {
 
     const shareDocument = async (docId) => {
         try {
-            const res = await axios.post(`http://localhost:5000/api/docs/${docId}/share`, {}, {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/docs/${docId}/share`, {},  {
                 headers: { Authorization: `Bearer ${token}` }
             });
             navigator.clipboard.writeText(res.data.shareLink);
@@ -116,7 +116,7 @@ const Dashboard = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex gap-4 justify-end text-sm">
-                                                <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">
+                                                <a href={`${import.meta.env.VITE_API_URL}/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">
                                                     View
                                                 </a>
                                                 <Link to={`/sign/${doc._id}`} className="text-blue-700 hover:text-blue-800 font-medium">
