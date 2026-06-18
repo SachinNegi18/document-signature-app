@@ -35,71 +35,102 @@ const Dashboard = () => {
         }
     };
 
+    const filteredDocs = documents.filter((doc) => filter === 'all' || doc.status === filter);
+
+    const statusCounts = {
+        all: documents.length,
+        pending: documents.filter(d => d.status === 'pending').length,
+        signed: documents.filter(d => d.status === 'signed').length,
+        rejected: documents.filter(d => d.status === 'rejected').length,
+    };
+
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-blue-600">
-                        Welcome, {user?.name}
-                    </h1>
+        <div className="min-h-screen bg-gray-50">
+            {/* Top bar */}
+            <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+                <span className="text-lg font-semibold text-gray-900">SignDoc</span>
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">{user?.name}</span>
                     <button
                         onClick={logout}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                        className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-100 transition"
                     >
-                        Logout
+                        Sign out
                     </button>
                 </div>
+            </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-                        <h2 className="text-xl font-semibold">Your Documents</h2>
-                        <div className="flex gap-2 flex-wrap">
-                            {['all', 'pending', 'signed', 'rejected'].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => setFilter(status)}
-                                    className={`px-3 py-1 rounded text-sm capitalize transition ${
-                                        filter === status
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    {status}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+            <div className="max-w-5xl mx-auto px-8 py-8">
+                <h1 className="text-xl font-semibold text-gray-900 mb-1">Documents</h1>
+                <p className="text-sm text-gray-500 mb-6">Manage and track your document signing activity</p>
 
-                    {documents.filter((doc) => filter === 'all' || doc.status === filter).length === 0 ? (
-                        <p className="text-gray-500">No documents found.</p>
+                {/* Filter tabs */}
+                <div className="flex gap-6 border-b border-gray-200 mb-4">
+                    {['all', 'pending', 'signed', 'rejected'].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilter(status)}
+                            className={`pb-3 text-sm font-medium capitalize border-b-2 transition ${
+                                filter === status
+                                    ? 'border-blue-700 text-blue-700'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            {status} <span className="text-xs text-gray-400 ml-1">{statusCounts[status]}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Document list */}
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    {filteredDocs.length === 0 ? (
+                        <p className="text-sm text-gray-500 p-6">No documents found.</p>
                     ) : (
-                        <div className="space-y-3">
-                            {documents.filter((doc) => filter === 'all' || doc.status === filter).map((doc) => (
-                                <div key={doc._id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center border border-gray-200 rounded p-4 gap-3">
-                                    <div>
-                                        <p className="font-medium">{doc.originalName}</p>
-                                        <span className={`inline-block mt-1 px-2 py-1 rounded text-xs font-semibold capitalize ${
-                                            doc.status === 'signed' ? 'bg-green-100 text-green-700' :
-                                            doc.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                            'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                            {doc.status}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                            View
-                                        </a>
-                                        <Link to={`/sign/${doc._id}`} className="text-green-600 hover:underline">
-                                            Sign
-                                        </Link>
-                                        <button onClick={() => shareDocument(doc._id)} className="text-purple-600 hover:underline">
-                                            Share
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-200 text-left text-gray-500">
+                                    <th className="px-6 py-3 font-medium">Document</th>
+                                    <th className="px-6 py-3 font-medium">Status</th>
+                                    <th className="px-6 py-3 font-medium text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredDocs.map((doc) => (
+                                    <tr key={doc._id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <span className="text-gray-900">{doc.originalName}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                                                doc.status === 'signed' ? 'bg-green-100 text-green-700' :
+                                                doc.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                'bg-amber-100 text-amber-700'
+                                            }`}>
+                                                {doc.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex gap-4 justify-end text-sm">
+                                                <a href={`http://localhost:5000/${doc.filePath.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">
+                                                    View
+                                                </a>
+                                                <Link to={`/sign/${doc._id}`} className="text-blue-700 hover:text-blue-800 font-medium">
+                                                    Sign
+                                                </Link>
+                                                <button onClick={() => shareDocument(doc._id)} className="text-gray-600 hover:text-gray-900">
+                                                    Share
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             </div>
