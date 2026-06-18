@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
 const Document = require('../models/Document');
 const auth = require('../middleware/auth');
@@ -29,6 +30,15 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
+// Helper: check if a signed version exists and attach its path
+const withSignedPath = (doc) => {
+    const docObj = doc.toObject ? doc.toObject() : doc;
+    const signedFileName = 'signed-' + docObj.filename;
+    const signedFilePath = path.join('uploads', signedFileName);
+    docObj.signedFilePath = fs.existsSync(signedFilePath) ? signedFilePath.replace(/\\/g, '/') : null;
+    return docObj;
+};
+
 // UPLOAD PDF
 router.post('/upload', auth, upload.single('file'), async (req, res) => {
     try {
@@ -53,7 +63,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 router.get('/', auth, async (req, res) => {
     try {
         const documents = await Document.find({ userId: req.user.userId });
-        res.json(documents);
+        res.json(documents.map(withSignedPath));
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
@@ -71,7 +81,7 @@ router.get('/public/:token', async (req, res) => {
 
         await logAction(req, document._id, 'Document viewed via share link');
 
-        res.json(document);
+        res.json(withSignedPath(document));
 
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired link' });
@@ -117,7 +127,7 @@ router.get('/:id', auth, async (req, res) => {
         if (!document) {
             return res.status(404).json({ message: 'Document not found' });
         }
-        res.json(document);
+        res.json(withSignedPath(document));
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
@@ -140,9 +150,11 @@ router.post('/:id/share', auth, async (req, res) => {
         document.shareToken = shareToken;
         await document.save();
 
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
         res.json({
             message: 'Share link generated',
-            shareLink: `http://localhost:5173/public-sign/${shareToken}`
+            shareLink: `${frontendUrl}/public-sign/${shareToken}`
         });
 
     } catch (error) {

@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SignDocument from './pages/SignDocument';
+import PublicSign from './pages/PublicSign';
 
 const ProtectedRoute = ({ children }) => {
     const { token } = useAuth();
@@ -15,6 +16,7 @@ function AppRoutes() {
         <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/public-sign/:token" element={<PublicSign />} />
             <Route
                 path="/dashboard"
                 element={
